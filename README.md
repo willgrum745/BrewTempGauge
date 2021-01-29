@@ -1,5 +1,7 @@
 # BrewTempGauge
 
+## JUST TEST CODE AT THE MOMENT NO ACTUAL USE YET
+
 ## Goal
 The goal of this project is to create a GUI that integrates with Raspberry Pi in order to controll the temperature of fermentation for brewing.
 
