@@ -15,7 +15,7 @@ fullscreen = False
 root = tk.Tk()
 root.title("Temp Controller rev1")
 root.geometry('480x320')
-root.rowconfigure([1,2,3], minsize=50, weight=1)
+root.rowconfigure([1,2,3,4], minsize=50, weight=1)
 root.columnconfigure([0, 1, 2, 3, 4], minsize=50, weight=1)
 
 #function
@@ -72,9 +72,11 @@ def fullscreen_toggle():
     global fullscreen
     if fullscreen == False:
         root.attributes("-fullscreen", True)
+        toggleFS.config(relief=RAISED)
         fullscreen = True
     else:
         root.attributes("-fullscreen", False)
+        toggleFS.config(relief=SUNKEN)
         fullscreen = False
 
 
@@ -123,14 +125,14 @@ but_inc2.grid(row=2,column=3, sticky="nsew")
 currTemp2.grid(row=2,column=4, sticky="nsew")
 light2.grid(row=2, column=5, sticky="nsew")
     #temp and gauge 3
-generic_label("Kettle 1", 0, 3)
+generic_label("Kettle 3", 0, 3)
 but_dec3.grid(row=3,column=1, sticky="nsew")
 setTemp3.grid(row=3, column=2, sticky="nsew")
 but_inc3.grid(row=3,column=3, sticky="nsew")
 currTemp3.grid(row=3,column=4, sticky="nsew")
 light3.grid(row=3, column=5, sticky="nsew")
     #full screen toggle button
-toggleFS = tk.Button(root, text="Toggle Fullscreen", command=fullscreen_toggle)
+toggleFS = tk.Button(root, text="Toggle Fullscreen", command=fullscreen_toggle, wraplength= 100, font=(12))
 toggleFS.grid(row=4,column=0, sticky="nsew")
 #other stuff in GUI
 update_light()
