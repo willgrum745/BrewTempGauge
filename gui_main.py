@@ -5,7 +5,7 @@ from tkinter import *
 relay_limit1 = 73
 relay_limit2 = 75
 relay_limit3 = 70
-
+    #these will be attached to gpio input values (after some math magic to convert analog to temp values)
 temp1 = 75
 temp2 = 60
 temp3 = 88
@@ -16,16 +16,15 @@ root.rowconfigure([1,2,3], minsize=50, weight=1)
 root.columnconfigure([0, 1, 2, 3, 4], minsize=50, weight=1)
 
 #function
-def generic_lab(txt, col):
+def generic_label(txt, col):
     labelSet = tk.Label(root, text=txt)
     labelSet.grid(row=0, column=col)
-
+    #increase and decrease temp set values per relay/thermistor
 def increase_r1():
     global relay_limit1
     relay_limit1 += 1
     setTemp1.config(text=relay_limit1)
     
-
 def decrease_r1():
     global relay_limit1 
     relay_limit1 -= 1
@@ -36,7 +35,6 @@ def increase_r2():
     relay_limit2 += 1
     setTemp2.config(text=relay_limit2)
     
-
 def decrease_r2():
     global relay_limit2 
     relay_limit2 -= 1
@@ -51,7 +49,7 @@ def decrease_r3():
     global relay_limit3 
     relay_limit3 -= 1
     setTemp3.config(text=relay_limit3)
-
+    #updates whether the indicator lights are green or red based on set vs actual temp (this will probably also update relay on off state, TBD)
 def update_light():
     if relay_limit1 >= temp1:
         light1.itemconfig(indicatorLight1, fill='green')
@@ -65,7 +63,6 @@ def update_light():
         light3.itemconfig(indicatorLight3, fill='green')
     elif relay_limit3 < temp3:
         light3.itemconfig(indicatorLight3, fill='red')
-
     root.after(500, update_light)
 
 
@@ -97,8 +94,8 @@ indicatorLight3 = light3.create_oval(15,15,35,35, fill="green")
 #setTemp = tk.Label(root, text=relay_limit1)
 #place gui items
     #headers
-generic_lab("Temp Limit", 1)
-generic_lab("Current Temp", 3)
+generic_label("Temp Limit", 1)
+generic_label("Current Temp", 3)
     #temp and gauge 1
 but_dec1.grid(row=1,column=0, sticky="nsew")
 setTemp1.grid(row=1, column=1, sticky="nsew")
@@ -117,7 +114,7 @@ setTemp3.grid(row=3, column=1, sticky="nsew")
 but_inc3.grid(row=3,column=2, sticky="nsew")
 currTemp3.grid(row=3,column=3, sticky="nsew")
 light3.grid(row=3, column=4, stick="nsew")
-
+#other stuff in GUI
 update_light()
 
 root.mainloop()
