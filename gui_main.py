@@ -1,50 +1,41 @@
 import tkinter as tk
 from tkinter import *
 
-    #relay stuff
-#import time, signal, sys
-#import gpiozero
-    #ADC/thermistor set up (https://learn.adafruit.com/adafruit-4-channel-adc-breakouts/python-circuitpython)
-"""
+import time, signal, sys
+import gpiozero
 import board
-import math
 import busio
-import adafruit_ads1x15.ads1115 as ADS
+import math
 i2c = busio.I2C(board.SCL, board.SDA)
+
+import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
+
 ads = ADS.ADS1115(i2c)
+
     #set up analog pins
 a0 = AnalogIn(ads, ADS.P0)
+"""
 a1 = AnalogIn(ads, ADS.P1)
 a2 = AnalogIn(ads, ADS.P2)
 """
 #set up
-relay_limit1 = 73
+relay_limit1 = 75
 relay_limit2 = 75
-relay_limit3 = 70
-    #these will be attached to gpio input values (after some math magic to convert analog to temp values)
-temp1 = 75
-temp2 = 60
-temp3 = 88
-    #gpio output placeholders
-relay1 = False
-relay2 = False
-relay3 = False
-pump = False
+relay_limit3 = 75
+
 #set up relay and pump pins
-"""
-relay1_pin = xx
-relay2_pin = xx
-relay3_pin = xx
-pump_pin = xx
-"""
+relay1_pin = 26
+relay2_pin = 19
+relay3_pin = 13
+pump_pin = 20
+
 #set up gpio relay outputs
-"""
-relay1 = gpiozero.OutputDevice(relay1_pin, active_high=False, initial_value=False)
-relay2 = gpiozero.OutputDevice(relay2_pin, active_high=False, initial_value=False)
-relay3 = gpiozero.OutputDevice(relay3_pin, active_high=False, initial_value=False)
-pump = gpiozero.OutputDevice(pump_pin, active_high=False, initial_value=False)
-"""
+relay1 = gpiozero.OutputDevice(relay1_pin, active_high=True, initial_value=False)
+relay2 = gpiozero.OutputDevice(relay2_pin, active_high=True, initial_value=False)
+relay3 = gpiozero.OutputDevice(relay3_pin, active_high=True, initial_value=False)
+pump = gpiozero.OutputDevice(pump_pin, active_high=True, initial_value=False)
+
     #others
 fullscreen = False
 lock = False
@@ -92,50 +83,41 @@ def decrease_r3():
     #updates whether the indicator lights are green or red based on set vs actual temp (this will probably also update relay on off state, TBD)
 def update_light():
     global relay1, relay2, relay3
-    #update_temp()
+    update_temp()
     if relay_limit1 >= temp1:
         light1.itemconfig(indicatorLight1, fill='green')
-        relay1 = True   #placeholder for relay output
-        #relay1.on()
+        relay1.on()
     elif relay_limit1 < temp1:
         light1.itemconfig(indicatorLight1, fill='red')
-        relay1 = False  #placeholder for relay output
-        #relay1.off()
-    if relay_limit2 >= temp1:
+        relay1.off()
+    if relay_limit2 >= temp2:
         light2.itemconfig(indicatorLight2, fill='green')
-        relay2 = True   #placeholder for relay output
-        #relay2.on()
+        relay2.on()
     elif relay_limit2 < temp2:
         light2.itemconfig(indicatorLight2, fill='red')
-        relay2 = False  #placeholder for relay output
-        #relay2.off()
+        relay2.off()
     if relay_limit3 >= temp3:
         light3.itemconfig(indicatorLight3, fill='green')
-        relay3 = True   #placeholder for relay output
-        #relay3.on()
+        relay3.on()
     elif relay_limit3 < temp3:
         light3.itemconfig(indicatorLight3, fill='red')
-        relay3 = False  #placeholder for relay output
-        #relay3.off()
+        relay3.off()
     pumpAct()
     root.after(1000, update_light)
 
 def pumpAct():
     global pump
-    if relay1 == True or relay2 == True or relay3 == True:  #placeholder for relay output
-        pump = True #placeholder for relay output
-        #pump.on()
-        print(pump)
-        print(relay1)
-        print(relay2)
-        print(relay3)
-    else:
-        pump = False    #placeholder for relay output
-        #pump.off()
-        print(pump)
-        print(relay1)
-        print(relay2)
-        print(relay3)
+    r1 = relay1.value
+    r2 = relay2.value
+    r3 = relay3.value
+    p = pump.value
+    if (r1 == False) or (r2 == False) or (r3 == False):
+        pump.off()
+        #print(r1, r2, r3, p)
+    if (r1 == True) and (r2 == True) and (r3 == True):
+        pump.on()
+        #print(r1, r2, r3, p)
+
 
 def fullscreen_toggle():
     global fullscreen
@@ -178,22 +160,37 @@ def lock_temp():
         lock = False
 
 
+def converter(ads_val, Ro=4000.0, To=25.0, beta=3435.0): #Ro is not accurate
+    r = 10000.0 / (65535.0 /ads_val-1.0)
+    #stienhart temp equation
+    sth = r/Ro
+    sth = math.log(sth)
+    sth /= beta
+    sth += 1.0/(To + 273.15)
+    sth = (1.0 / sth)
+    sth-= 273.15
+    sth = (sth * (9/5)) + 32
+    
+    return int(sth)
+def update_temp():
+    global temp1, temp2, temp3
+    temp1 = converter(a0.value)
+    """
+    temp2 = converter(a1.value)
+    temp3 = converter(a2.value)
+    """
+    currTemp1.config(text=f"{temp1}\N{DEGREE FAHRENHEIT}")
+    #currTemp2.config(text=f"{temp2}\N{DEGREE FAHRENHEIT}")
+    #currTemp3.config(text=f"{temp3}\N{DEGREE FAHRENHEIT}")
+#set up analog values
+temp1 = converter(a0.value)
 """
-def steinhart_temperature_C(ads_val):   #converts analog input to temp
-    import math
-    r = 10000 / (65535/ads_val - 1)
-    Ro=10000.0
-    To=25.0
-    beta=3950.0
-
-    steinhart = math.log(r / Ro) / beta      # log(R/Ro) / beta
-    steinhart += 1.0 / (To + 273.15)         # log(R/Ro) / beta + 1/To
-    steinhart = (1.0 / steinhart) - 273.15   # Invert, convert to C
-    steinhart = (steinhart * (9/5)) + 32       #convert to F
-    return steinhart
+temp2 = converter(a1.value)
+temp3 = converter(a2.value)
 """
-
-
+    #DELETE ME ONCE YOU HAVE ALL THERMISTORS
+temp2 = 60
+temp3 = 75
 #set up gui items
     #initial label config
 setTemp1 = tk.Label(root, text=relay_limit1, relief=RIDGE)
@@ -257,3 +254,4 @@ update_light()
 
 #loop
 root.mainloop()
+
